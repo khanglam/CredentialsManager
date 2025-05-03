@@ -6,6 +6,7 @@ import SignUpForm from "./components/auth/SignUpForm";
 import Dashboard from "./components/pages/dashboard";
 import Success from "./components/pages/success";
 import Home from "./components/pages/home";
+import CredentialManager from "./components/pages/credential-manager";
 import { AuthProvider, useAuth } from "../supabase/auth";
 import { Toaster } from "./components/ui/toaster";
 import { LoadingScreen, LoadingSpinner } from "./components/ui/loading-spinner";
@@ -39,10 +40,13 @@ function AppRoutes() {
             </PrivateRoute>
           }
         />
+        <Route path="/success" element={<Success />} />
         <Route
-          path="/success"
+          path="/credentials"
           element={
-            <Success />
+            <PrivateRoute>
+              <CredentialManager />
+            </PrivateRoute>
           }
         />
       </Routes>
