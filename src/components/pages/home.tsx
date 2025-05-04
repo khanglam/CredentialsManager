@@ -68,21 +68,11 @@ export default function LandingPage() {
                 </DropdownMenu>
               </div>
             ) : (
-              <>
-                <Link to="/login">
-                  <Button
-                    variant="ghost"
-                    className="text-sm font-light hover:text-gray-500"
-                  >
-                    Sign In
-                  </Button>
-                </Link>
-                <Link to="/signup">
-                  <Button className="rounded-full bg-black text-white hover:bg-gray-800 text-sm px-4">
-                    Get Started
-                  </Button>
-                </Link>
-              </>
+              <Link to="/signup">
+                <Button className="rounded-full bg-black text-white hover:bg-gray-800 text-sm px-4">
+                  Get Started
+                </Button>
+              </Link>
             )}
           </div>
         </div>
@@ -104,3 +94,4 @@ export default function LandingPage() {
     </div>
   );
 }
+

@@ -11,7 +11,17 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, Star, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Star, Trash2, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import EditCredentialDialog from "./EditCredentialDialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface Credential {
   id: number;
@@ -22,12 +32,14 @@ interface Credential {
   category: string;
   favorite: boolean;
   lastUpdated: string;
+  notes?: string;
 }
 
 interface CredentialListProps {
   credentials?: Credential[];
   onDelete?: (id: number) => void;
   onToggleFavorite?: (id: number) => void;
+  onEdit?: (credential: Credential) => void;
   isLoading?: boolean;
 }
 
@@ -88,10 +100,12 @@ const CredentialCard = ({
   credential,
   onDelete,
   onToggleFavorite,
+  onEdit,
 }: {
   credential: Credential;
   onDelete?: (id: number) => void;
   onToggleFavorite?: (id: number) => void;
+  onEdit?: (credential: Credential) => void;
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -146,6 +160,16 @@ const CredentialCard = ({
             </div>
           </div>
         )}
+        {credential.notes && (
+          <div className="mb-3 p-2 bg-gray-50 rounded-md border border-gray-200">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs font-medium text-gray-500">Additional Information:</span>
+            </div>
+            <div className="text-sm whitespace-pre-wrap break-all">
+              {credential.notes}
+            </div>
+          </div>
+        )}
         <div className="flex items-center gap-2 mb-2">
           <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
             <div
@@ -187,15 +211,23 @@ const CredentialCard = ({
           )}
           {showPassword ? "Hide" : "View"}
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
-          onClick={() => onDelete && onDelete(credential.id)}
-        >
-          <Trash2 className="h-3 w-3 mr-1" />
-          Delete
-        </Button>
+        <div className="flex space-x-2">
+          {onEdit && (
+            <EditCredentialDialog
+              credential={credential}
+              onSave={onEdit}
+            />
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
+            onClick={() => onDelete && onDelete(credential.id)}
+          >
+            <Trash2 className="h-3 w-3 mr-1" />
+            Delete
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );
@@ -205,16 +237,30 @@ export default function CredentialList({
   credentials = [],
   onDelete,
   onToggleFavorite,
+  onEdit,
   isLoading = false,
 }: CredentialListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   const filteredCredentials = credentials.filter(
     (cred) =>
       cred.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       cred.username.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+  
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredCredentials.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCredentials = filteredCredentials.slice(startIndex, endIndex);
+  
+  // Reset to first page when search query changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeTab]);
 
   return (
     <div className="space-y-6">
@@ -257,16 +303,86 @@ export default function CredentialList({
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredCredentials.map((credential) => (
-                <CredentialCard
-                  key={credential.id}
-                  credential={credential}
-                  onDelete={onDelete}
-                  onToggleFavorite={onToggleFavorite}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {paginatedCredentials.map((credential) => (
+                  <CredentialCard
+                    key={credential.id}
+                    credential={credential}
+                    onDelete={onDelete}
+                    onToggleFavorite={onToggleFavorite}
+                    onEdit={onEdit}
+                  />
+                ))}
+              </div>
+              
+              {totalPages > 1 && (
+                <div className="mt-6">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                          className="flex items-center gap-1"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          <span>Previous</span>
+                        </Button>
+                      </PaginationItem>
+                      
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        // Show first page, last page, current page, and pages around current
+                        let pageToShow;
+                        
+                        if (totalPages <= 5) {
+                          // If 5 or fewer pages, show all pages
+                          pageToShow = i + 1;
+                        } else if (currentPage <= 3) {
+                          // If near start, show first 5 pages
+                          pageToShow = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          // If near end, show last 5 pages
+                          pageToShow = totalPages - 4 + i;
+                        } else {
+                          // Otherwise show current page and 2 pages on each side
+                          pageToShow = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <PaginationItem key={pageToShow}>
+                            <PaginationLink 
+                              onClick={() => setCurrentPage(pageToShow)}
+                              isActive={currentPage === pageToShow}
+                              className="cursor-pointer"
+                            >
+                              {pageToShow}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      <PaginationItem>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                          className="flex items-center gap-1"
+                        >
+                          <span>Next</span>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                  
+                  <div className="text-center text-sm text-gray-500 mt-2">
+                    Showing {startIndex + 1}-{Math.min(endIndex, filteredCredentials.length)} of {filteredCredentials.length} credentials
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </TabsContent>
 

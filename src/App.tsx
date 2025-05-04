@@ -3,11 +3,9 @@ import { Navigate, Route, Routes, useRoutes } from "react-router-dom";
 import routes from "tempo-routes";
 import LoginForm from "./components/auth/LoginForm";
 import SignUpForm from "./components/auth/SignUpForm";
-import Dashboard from "./components/pages/dashboard";
 import Success from "./components/pages/success";
 import Home from "./components/pages/home";
 import CredentialManager from "./components/pages/credential-manager";
-import PasswordGenerator from "./components/pages/password-generator";
 import SecurityReport from "./components/pages/security-report";
 import { AuthProvider, useAuth } from "../supabase/auth";
 import { Toaster } from "./components/ui/toaster";
@@ -48,14 +46,6 @@ function AppRoutes() {
           element={
             <PrivateRoute>
               <CredentialManager />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/password-generator"
-          element={
-            <PrivateRoute>
-              <PasswordGenerator />
             </PrivateRoute>
           }
         />

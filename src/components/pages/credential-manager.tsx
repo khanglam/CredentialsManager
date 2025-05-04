@@ -3,11 +3,13 @@ import TopNavigation from "../dashboard/layout/TopNavigation";
 import Sidebar from "../dashboard/layout/Sidebar";
 import CredentialList from "../credential/CredentialList";
 import AddCredentialDialog from "../credential/AddCredentialDialog";
-import { Key, Star, Shield, Lock } from "lucide-react";
+import ImportCredentialsDialog from "../credential/ImportCredentialsDialog";
+import { Key, Star, Lock } from "lucide-react";
 import { supabase } from "../../../supabase/supabase";
 import { useAuth } from "../../../supabase/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { calculatePasswordStrength } from "@/lib/passwordUtils";
+import { Button } from "@/components/ui/button";
 
 interface Credential {
   id: number;
@@ -18,12 +20,12 @@ interface Credential {
   category: string;
   favorite: boolean;
   lastUpdated: string;
+  notes?: string;
 }
 
 const sidebarItems = [
   { icon: <Key size={20} />, label: "All Credentials", isActive: true },
   { icon: <Star size={20} />, label: "Favorites" },
-  { icon: <Shield size={20} />, label: "Security Report" },
   { icon: <Lock size={20} />, label: "Password Generator" },
 ];
 
@@ -101,7 +103,7 @@ export default function CredentialManager() {
         .from('credentials')
         .select('*')
         .order('name');
-      
+
       if (error) {
         console.error('Error fetching credentials:', error);
         toast({
@@ -111,7 +113,7 @@ export default function CredentialManager() {
         });
         return;
       }
-      
+
       // Transform the data to match our Credential interface
       const formattedData = data.map(cred => ({
         id: cred.id,
@@ -122,8 +124,9 @@ export default function CredentialManager() {
         category: cred.category,
         favorite: cred.favorite,
         lastUpdated: new Date(cred.last_updated).toISOString().split('T')[0],
+        notes: cred.notes || '',
       }));
-      
+
       setCredentials(formattedData);
     } catch (error) {
       console.error('Error:', error);
@@ -143,7 +146,7 @@ export default function CredentialManager() {
         .from('credentials')
         .delete()
         .eq('id', id);
-      
+
       if (error) {
         console.error('Error deleting credential:', error);
         toast({
@@ -153,11 +156,61 @@ export default function CredentialManager() {
         });
         return;
       }
-      
-      setCredentials(credentials.filter((cred) => cred.id !== id));
+
+      // Update local state
+      setCredentials(prev => prev.filter(cred => cred.id !== id));
       toast({
         title: "Success",
         description: "Credential deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = async (updatedCredential: Credential) => {
+    try {
+      // Format the data for Supabase
+      const supabaseData = {
+        name: updatedCredential.name,
+        username: updatedCredential.username,
+        password: updatedCredential.password,
+        strength: updatedCredential.strength,
+        category: updatedCredential.category,
+        favorite: updatedCredential.favorite,
+        last_updated: new Date().toISOString(),
+        notes: updatedCredential.notes || '',
+      };
+
+      const { error } = await supabase
+        .from('credentials')
+        .update(supabaseData)
+        .eq('id', updatedCredential.id);
+
+      if (error) {
+        console.error('Error updating credential:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update credential",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update local state
+      setCredentials(prev =>
+        prev.map(cred =>
+          cred.id === updatedCredential.id ? updatedCredential : cred
+        )
+      );
+      toast({
+        title: "Success",
+        description: "Credential updated successfully",
       });
     } catch (error) {
       console.error('Error:', error);
@@ -173,12 +226,12 @@ export default function CredentialManager() {
     try {
       const credential = credentials.find(cred => cred.id === id);
       if (!credential) return;
-      
+
       const { error } = await supabase
         .from('credentials')
         .update({ favorite: !credential.favorite })
         .eq('id', id);
-      
+
       if (error) {
         console.error('Error updating favorite status:', error);
         toast({
@@ -188,7 +241,7 @@ export default function CredentialManager() {
         });
         return;
       }
-      
+
       setCredentials(
         credentials.map((cred) =>
           cred.id === id ? { ...cred, favorite: !cred.favorite } : cred,
@@ -204,16 +257,63 @@ export default function CredentialManager() {
     }
   };
 
+  const handleDeleteAllCredentials = async () => {
+    if (!confirm('Are you sure you want to delete ALL credentials? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Get all credentials first
+      const { data } = await supabase
+        .from('credentials')
+        .select('id');
+
+      if (data && data.length > 0) {
+        // Delete each credential individually
+        for (const cred of data) {
+          await supabase
+            .from('credentials')
+            .delete()
+            .eq('id', cred.id);
+        }
+
+        // Update local state
+        setCredentials([]);
+        toast({
+          title: "Success",
+          description: `Deleted ${data.length} credentials successfully`,
+        });
+      } else {
+        toast({
+          title: "Info",
+          description: "No credentials found to delete",
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAddCredential = async (newCred: {
     name: string;
     username: string;
     password: string;
     category: string;
+    notes?: string;
   }) => {
     try {
       // Calculate password strength
       const passwordStrength = calculatePasswordStrength(newCred.password);
-      
+
       // Prepare the credential for insertion
       const credentialData = {
         user_id: user?.id, // Add user_id for Row Level Security
@@ -223,14 +323,15 @@ export default function CredentialManager() {
         strength: passwordStrength.strength,
         category: newCred.category,
         favorite: false,
+        notes: newCred.notes || '',
       };
-      
+
       // Insert into Supabase
       const { data, error } = await supabase
         .from('credentials')
         .insert(credentialData)
         .select();
-      
+
       if (error) {
         console.error('Error adding credential:', error);
         console.log('Attempted to insert with data:', { ...credentialData, password: '***' });
@@ -241,7 +342,7 @@ export default function CredentialManager() {
         });
         return;
       }
-      
+
       // Format the returned data
       const newCredential: Credential = {
         id: data[0].id,
@@ -252,8 +353,9 @@ export default function CredentialManager() {
         category: data[0].category,
         favorite: data[0].favorite,
         lastUpdated: new Date(data[0].last_updated).toISOString().split('T')[0],
+        notes: data[0].notes || '',
       };
-      
+
       setCredentials([...credentials, newCredential]);
       toast({
         title: "Success",
@@ -269,6 +371,108 @@ export default function CredentialManager() {
     }
   };
 
+  // Filter credentials based on active sidebar item
+  const filteredCredentials = () => {
+    if (activeItem === 'Favorites') {
+      return credentials.filter(cred => cred.favorite);
+    }
+    return credentials;
+  };
+
+  // Handle bulk import of credentials
+  const handleImportCredentials = async (importedCredentials: any[]) => {
+    try {
+      setLoading(true);
+
+      // Prepare credentials for insertion with user_id and strength
+      const credentialsToInsert = importedCredentials.map(cred => {
+        // Ensure strength is a string value ("strong", "medium", or "weak")
+        let strength = cred.strength;
+        if (!strength) {
+          // If no strength provided, calculate it
+          const strengthResult = calculatePasswordStrength(cred.password);
+          strength = strengthResult.strength;
+        }
+
+        // Ensure strength is one of the allowed values
+        if (typeof strength === 'number' || !['strong', 'medium', 'weak'].includes(strength)) {
+          strength = 'medium'; // Default to medium if invalid
+        }
+
+        return {
+          user_id: user?.id,
+          name: cred.name,
+          username: cred.username,
+          password: cred.password,
+          category: cred.category || 'Imported',
+          strength: strength,
+          last_updated: new Date().toISOString(),
+          favorite: cred.favorite || false,
+          notes: cred.notes || '',
+        };
+      });
+
+      // Insert into Supabase
+      const { data, error } = await supabase
+        .from('credentials')
+        .insert(credentialsToInsert)
+        .select();
+
+      if (error) {
+        console.error('Error importing credentials:', error);
+        toast({
+          title: "Error",
+          description: `Failed to import credentials: ${error.message || error.details || 'Unknown error'}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Format the returned data
+      const newCredentials = data.map((cred: any) => ({
+        id: cred.id,
+        name: cred.name,
+        username: cred.username,
+        password: cred.password,
+        strength: cred.strength,
+        category: cred.category,
+        favorite: cred.favorite,
+        lastUpdated: new Date(cred.last_updated).toISOString().split('T')[0],
+      }));
+
+      setCredentials([...credentials, ...newCredentials]);
+      toast({
+        title: "Success",
+        description: `${newCredentials.length} credentials imported successfully`,
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred during import",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle password generator click
+  const handlePasswordGeneratorClick = () => {
+    toast({
+      title: "Password Generator",
+      description: "Use the 'Generate' button when adding a new credential to create a strong password.",
+    });
+  };
+
+  // Update sidebar click handler
+  useEffect(() => {
+    if (activeItem === 'Password Generator') {
+      handlePasswordGeneratorClick();
+      setActiveItem('All Credentials'); // Reset to All Credentials
+    }
+  }, [activeItem]);
+
   return (
     <div className="min-h-screen bg-[#f5f5f7]">
       <TopNavigation />
@@ -283,19 +487,33 @@ export default function CredentialManager() {
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  Credential Vault
+                  {activeItem === 'Favorites' ? 'Favorite Credentials' : 'Credential Vault'}
                 </h1>
                 <p className="text-gray-500">
-                  Securely manage all your passwords
+                  {activeItem === 'Favorites'
+                    ? 'Your most important credentials'
+                    : 'Securely manage all your passwords'}
                 </p>
               </div>
-              <AddCredentialDialog onSave={handleAddCredential} />
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteAllCredentials}
+                  className="ml-2"
+                  disabled={loading}
+                >
+                  {loading ? 'Deleting...' : 'Delete All Credentials'}
+                </Button>
+                <ImportCredentialsDialog onImport={handleImportCredentials} />
+                <AddCredentialDialog onSave={handleAddCredential} />
+              </div>
             </div>
 
             <CredentialList
-              credentials={credentials}
+              credentials={filteredCredentials()}
               onDelete={handleDelete}
               onToggleFavorite={handleToggleFavorite}
+              onEdit={handleEdit}
               isLoading={loading}
             />
           </div>

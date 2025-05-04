@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import TopNavigation from "../dashboard/layout/TopNavigation";
-import Sidebar from "../dashboard/layout/Sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Shield, AlertTriangle, AlertCircle, CheckCircle2 } from "lucide-react";
-import { calculatePasswordStrength } from "@/lib/passwordUtils";
+import { Shield, AlertTriangle, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../../supabase/auth";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface Credential {
   id: number;
@@ -15,7 +15,9 @@ interface Credential {
   strength: "strong" | "medium" | "weak";
   category: string;
   favorite: boolean;
-  lastUpdated: string;
+  lastUpdated?: string;
+  notes?: string;
+  user_id?: string;
 }
 
 interface SecurityIssue {
@@ -27,82 +29,128 @@ interface SecurityIssue {
   recommendation: string;
 }
 
+// Simple password strength calculator that returns a category
+const calculatePasswordStrength = (password: string): {score: number; strength: "strong" | "medium" | "weak"} => {
+  if (!password) return {score: 0, strength: "weak"};
+  
+  let score = 0;
+  
+  // Length check
+  if (password.length >= 8) score += 1;
+  if (password.length >= 12) score += 1;
+  
+  // Character variety checks
+  if (/[A-Z]/.test(password)) score += 1; // Has uppercase
+  if (/[a-z]/.test(password)) score += 1; // Has lowercase
+  if (/[0-9]/.test(password)) score += 1; // Has number
+  if (/[^A-Za-z0-9]/.test(password)) score += 1; // Has special char
+  
+  // Normalize to 0-10 scale
+  const normalizedScore = Math.min(10, score * 1.67);
+  
+  // Determine strength category
+  let strength: "strong" | "medium" | "weak" = "weak";
+  if (normalizedScore >= 7) strength = "strong";
+  else if (normalizedScore >= 4) strength = "medium";
+  
+  return {score: normalizedScore, strength};
+};
+
 export default function SecurityReport() {
+  const { user } = useAuth();
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [securityIssues, setSecurityIssues] = useState<SecurityIssue[]>([]);
   const [securityScore, setSecurityScore] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Simulate fetching credentials
+  // Fetch credentials from Supabase
   useEffect(() => {
-    // In a real app, this would come from your database
-    const sampleCredentials: Credential[] = [
-      {
-        id: 1,
-        name: "Google",
-        username: "user@example.com",
-        password: "P@ssw0rd123!",
-        strength: "strong",
-        category: "personal",
-        favorite: true,
-        lastUpdated: "2023-12-15",
-      },
-      {
-        id: 2,
-        name: "GitHub",
-        username: "devuser",
-        password: "c0d3rP@ss",
-        strength: "medium",
-        category: "work",
-        favorite: false,
-        lastUpdated: "2024-01-20",
-      },
-      {
-        id: 3,
-        name: "AWS Console",
-        username: "admin@company.com",
-        password: "Cl0ud$3cure!",
-        strength: "strong",
-        category: "work",
-        favorite: true,
-        lastUpdated: "2024-02-05",
-      },
-      {
-        id: 4,
-        name: "Netflix",
-        username: "family@example.com",
-        password: "movies123",
-        strength: "weak",
-        category: "personal",
-        favorite: false,
-        lastUpdated: "2023-11-10",
-      },
-      {
-        id: 5,
-        name: "Bank Account",
-        username: "user@example.com",
-        password: "$ecur3B@nk2024",
-        strength: "strong",
-        category: "financial",
-        favorite: true,
-        lastUpdated: "2024-03-01",
-      },
-      {
-        id: 6,
-        name: "Twitter",
-        username: "socialuser",
-        password: "P@ssw0rd123!", // Reused password
-        strength: "strong",
-        category: "social",
-        favorite: false,
-        lastUpdated: "2023-09-15",
-      },
-    ];
+    const fetchCredentials = async () => {
+      if (!user) return;
+      
+      try {
+        // This would be replaced with your actual Supabase client
+        // const { data, error } = await supabase
+        //   .from('credentials')
+        //   .select('*')
+        //   .eq('user_id', user.id);
+        
+        // For demo purposes, use sample data instead
+        const sampleCredentials: Credential[] = [
+          {
+            id: 1,
+            name: "Google",
+            username: "user@example.com",
+            password: "P@ssw0rd123!",
+            strength: "strong",
+            category: "personal",
+            favorite: true,
+            lastUpdated: "2023-12-15",
+            notes: "Work account"
+          },
+          {
+            id: 2,
+            name: "GitHub",
+            username: "devuser",
+            password: "c0d3rP@ss",
+            strength: "medium",
+            category: "work",
+            favorite: false,
+            lastUpdated: "2024-01-20",
+          },
+          {
+            id: 3,
+            name: "AWS Console",
+            username: "admin@company.com",
+            password: "Cl0ud$3cure!",
+            strength: "strong",
+            category: "work",
+            favorite: true,
+            lastUpdated: "2024-02-05",
+          },
+          {
+            id: 4,
+            name: "Netflix",
+            username: "family@example.com",
+            password: "movies123",
+            strength: "weak",
+            category: "personal",
+            favorite: false,
+            lastUpdated: "2023-11-10",
+          },
+          {
+            id: 5,
+            name: "Bank Account",
+            username: "user@example.com",
+            password: "$ecur3B@nk2024",
+            strength: "strong",
+            category: "financial",
+            favorite: true,
+            lastUpdated: "2024-03-01",
+          },
+          {
+            id: 6,
+            name: "Twitter",
+            username: "socialuser",
+            password: "P@ssw0rd123!", // Reused password
+            strength: "strong",
+            category: "social",
+            favorite: false,
+            lastUpdated: "2023-09-15",
+          },
+        ];
 
-    setCredentials(sampleCredentials);
-    analyzeSecurityIssues(sampleCredentials);
-    setLoading(false);
-  }, []);
+        setCredentials(sampleCredentials);
+        analyzeSecurityIssues(sampleCredentials);
+      } catch (error) {
+        console.error('Error fetching credentials:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCredentials();
+  }, [user]);
 
   const analyzeSecurityIssues = (credentials: Credential[]) => {
     const issues: SecurityIssue[] = [];
@@ -218,170 +266,110 @@ export default function SecurityReport() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+  
   return (
-    <div className="min-h-screen bg-[#f5f5f7]">
-      <TopNavigation />
-      <div className="flex h-[calc(100vh-64px)] mt-16">
-        <Sidebar activeItem="Security Report" />
-        <main className="flex-1 overflow-auto p-6">
-          <div className="container mx-auto max-w-4xl">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Security Report</h1>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Overall Score</CardTitle>
-                  <CardDescription>Your password security rating</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col items-center justify-center py-4">
-                    <div className={`text-5xl font-bold ${getScoreColor(securityScore)}`}>
-                      {securityScore}
-                    </div>
-                    <Progress value={securityScore} className="w-full mt-4" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Credentials</CardTitle>
-                  <CardDescription>Your stored accounts</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col items-center justify-center py-4">
-                    <div className="text-5xl font-bold text-blue-500">
-                      {credentials.length}
-                    </div>
-                    <div className="text-sm text-gray-500 mt-2">
-                      Total accounts protected
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Security Issues</CardTitle>
-                  <CardDescription>Problems that need attention</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col items-center justify-center py-4">
-                    <div className="text-5xl font-bold text-red-500">
-                      {securityIssues.length}
-                    </div>
-                    <div className="text-sm text-gray-500 mt-2">
-                      {securityIssues.length === 0 ? "No issues found" : "Issues to resolve"}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            {securityIssues.length > 0 ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Security Issues</CardTitle>
-                  <CardDescription>
-                    We've identified the following security concerns with your credentials
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {securityIssues.map((issue) => {
-                      const credential = credentials.find(c => c.id === issue.credentialId);
-                      return (
-                        <div key={issue.id} className="p-4 border rounded-lg bg-white">
-                          <div className="flex items-start gap-3">
-                            <div className="mt-0.5">
-                              {getSeverityIcon(issue.severity)}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex justify-between items-start">
-                                <h3 className="font-medium">{issue.description}</h3>
-                                <span className={`text-xs font-medium uppercase ${getSeverityColor(issue.severity)}`}>
-                                  {issue.severity} risk
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-600 mt-1">{issue.recommendation}</p>
-                              {credential && (
-                                <div className="mt-2">
-                                  <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                                    {credential.name} • {credential.username}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <CheckCircle2 className="h-16 w-16 text-green-500 mb-4" />
-                  <h3 className="text-xl font-medium text-center">All Secure!</h3>
-                  <p className="text-gray-500 text-center mt-2">
-                    Your password security is excellent. Keep up the good work!
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-            
-            <div className="mt-8 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center gap-3 mb-4">
-                <Shield className="h-6 w-6 text-blue-500" />
-                <h2 className="text-lg font-medium">Security Recommendations</h2>
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center mb-6">
+          <Link to="/credentials" className="mr-4">
+            <Button variant="ghost" size="sm" className="gap-1">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Credentials
+            </Button>
+          </Link>
+          <h1 className="text-2xl font-bold">Security Report</h1>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Overall Score</CardTitle>
+              <CardDescription>Your password security rating</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center justify-center py-4">
+                <div className={`text-5xl font-bold ${getScoreColor(securityScore)}`}>
+                  {securityScore}
+                </div>
+                <Progress value={securityScore} className="w-full mt-4" />
               </div>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-2">
-                  <div className="h-5 w-5 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full flex-shrink-0 mt-0.5">
-                    1
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Use unique passwords</h3>
-                    <p className="text-sm text-gray-600">Never reuse passwords across different accounts.</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="h-5 w-5 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full flex-shrink-0 mt-0.5">
-                    2
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Create strong passwords</h3>
-                    <p className="text-sm text-gray-600">Use a mix of uppercase, lowercase, numbers, and symbols.</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="h-5 w-5 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full flex-shrink-0 mt-0.5">
-                    3
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Update regularly</h3>
-                    <p className="text-sm text-gray-600">Change your passwords every 3-6 months for better security.</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="h-5 w-5 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full flex-shrink-0 mt-0.5">
-                    4
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Enable two-factor authentication</h3>
-                    <p className="text-sm text-gray-600">Add an extra layer of security to your important accounts.</p>
-                  </div>
-                </li>
-              </ul>
-              <div className="mt-6">
-                <Button className="bg-blue-500 hover:bg-blue-600">
-                  Fix All Issues
-                </Button>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Credentials</CardTitle>
+              <CardDescription>Your stored accounts</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center justify-center py-4">
+                <div className="text-5xl font-bold text-blue-500">
+                  {credentials.length}
+                </div>
+                <div className="text-sm text-gray-500 mt-2">
+                  Total accounts protected
+                </div>
               </div>
-            </div>
-          </div>
-        </main>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Security Issues</CardTitle>
+              <CardDescription>Problems that need attention</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center justify-center py-4">
+                <div className="text-5xl font-bold text-red-500">
+                  {securityIssues.length}
+                </div>
+                <div className="text-sm text-gray-500 mt-2">
+                  {securityIssues.length === 0 ? "No issues found" : "Issues to resolve"}
+                </div>
+                <ul className="mt-4 space-y-2 w-full">
+                  <li className="flex items-start gap-2">
+                    <div className="h-5 w-5 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full flex-shrink-0 mt-0.5">1</div>
+                    <div>
+                      <h3 className="font-medium">Use unique passwords</h3>
+                      <p className="text-sm text-gray-600">Never reuse passwords across different accounts.</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="h-5 w-5 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full flex-shrink-0 mt-0.5">2</div>
+                    <div>
+                      <h3 className="font-medium">Create strong passwords</h3>
+                      <p className="text-sm text-gray-600">Use a mix of uppercase, lowercase, numbers, and symbols.</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="h-5 w-5 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full flex-shrink-0 mt-0.5">3</div>
+                    <div>
+                      <h3 className="font-medium">Update regularly</h3>
+                      <p className="text-sm text-gray-600">Change your passwords every 3-6 months for better security.</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="h-5 w-5 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full flex-shrink-0 mt-0.5">4</div>
+                    <div>
+                      <h3 className="font-medium">Enable two-factor authentication</h3>
+                      <p className="text-sm text-gray-600">Add an extra layer of security to your important accounts.</p>
+                    </div>
+                  </li>
+                </ul>
+                <div className="mt-6">
+                  <Button className="bg-blue-500 hover:bg-blue-600">Fix All Issues</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
