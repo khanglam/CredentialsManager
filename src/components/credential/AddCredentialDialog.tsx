@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
+import { calculatePasswordStrength, generatePassword } from "@/lib/passwordUtils";
 
 interface AddCredentialDialogProps {
   onSave?: (credential: {
@@ -37,6 +38,19 @@ export default function AddCredentialDialog({
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [category, setCategory] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState<{
+    strength: 'weak' | 'medium' | 'strong';
+    score: number;
+  }>({ strength: 'weak', score: 0 });
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (password) {
+      setPasswordStrength(calculatePasswordStrength(password));
+    } else {
+      setPasswordStrength({ strength: 'weak', score: 0 });
+    }
+  }, [password]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +71,31 @@ export default function AddCredentialDialog({
     setUsername("");
     setPassword("");
     setCategory("");
+    setShowPassword(false);
+  };
+
+  const handleGeneratePassword = () => {
+    const newPassword = generatePassword(12, {
+      uppercase: true,
+      lowercase: true,
+      numbers: true,
+      symbols: true,
+    });
+    setPassword(newPassword);
+    setShowPassword(true);
+  };
+
+  const getStrengthColor = (strength: string) => {
+    switch (strength) {
+      case "strong":
+        return "bg-green-500";
+      case "medium":
+        return "bg-yellow-500";
+      case "weak":
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
+    }
   };
 
   return (
@@ -112,14 +151,58 @@ export default function AddCredentialDialog({
               <Label htmlFor="password" className="text-right">
                 Password
               </Label>
-              <Input
-                id="password"
-                type="password"
-                className="col-span-3"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="col-span-3 space-y-2">
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    className="pr-24"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </Button>
+                  </div>
+                </div>
+                
+                {password && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${getStrengthColor(passwordStrength.strength)}`}
+                          style={{
+                            width: `${(passwordStrength.score / 9) * 100}%`,
+                          }}
+                        ></div>
+                      </div>
+                      <span className="text-xs text-gray-500 capitalize">
+                        {passwordStrength.strength}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-xs w-full"
+                  onClick={handleGeneratePassword}
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Generate Strong Password
+                </Button>
+              </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="category" className="text-right">

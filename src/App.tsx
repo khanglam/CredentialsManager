@@ -7,6 +7,8 @@ import Dashboard from "./components/pages/dashboard";
 import Success from "./components/pages/success";
 import Home from "./components/pages/home";
 import CredentialManager from "./components/pages/credential-manager";
+import PasswordGenerator from "./components/pages/password-generator";
+import SecurityReport from "./components/pages/security-report";
 import { AuthProvider, useAuth } from "../supabase/auth";
 import { Toaster } from "./components/ui/toaster";
 import { LoadingScreen, LoadingSpinner } from "./components/ui/loading-spinner";
@@ -19,7 +21,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    return <Navigate to="/" />;
+    return <Navigate to="/login" />;
   }
 
   return <>{children}</>;
@@ -36,7 +38,7 @@ function AppRoutes() {
           path="/dashboard"
           element={
             <PrivateRoute>
-              <Dashboard />
+              <Navigate to="/credentials" replace />
             </PrivateRoute>
           }
         />
@@ -46,6 +48,22 @@ function AppRoutes() {
           element={
             <PrivateRoute>
               <CredentialManager />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/password-generator"
+          element={
+            <PrivateRoute>
+              <PasswordGenerator />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/security-report"
+          element={
+            <PrivateRoute>
+              <SecurityReport />
             </PrivateRoute>
           }
         />

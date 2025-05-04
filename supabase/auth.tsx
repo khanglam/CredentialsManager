@@ -35,16 +35,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    const { error } = await supabase.auth.signUp({
+    // For development, we're disabling email confirmation
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
         },
+        emailRedirectTo: window.location.origin + '/login',
       },
     });
-    if (error) throw error;
+    
+    console.log('Sign up response:', data);
+    if (error) {
+      console.error('Sign up error:', error);
+      throw error;
+    }
+    
+    // For development purposes, you can log the user in immediately
+    // In production, you would typically wait for email confirmation
+    // Not returning data to match the Promise<void> return type
   };
 
   const signIn = async (email: string, password: string) => {

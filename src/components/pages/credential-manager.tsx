@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TopNavigation from "../dashboard/layout/TopNavigation";
 import Sidebar from "../dashboard/layout/Sidebar";
 import CredentialList from "../credential/CredentialList";
 import AddCredentialDialog from "../credential/AddCredentialDialog";
 import { Key, Star, Shield, Lock } from "lucide-react";
+import { supabase } from "../../../supabase/supabase";
+import { useAuth } from "../../../supabase/auth";
+import { useToast } from "@/components/ui/use-toast";
+import { calculatePasswordStrength } from "@/lib/passwordUtils";
 
 interface Credential {
   id: number;
   name: string;
   username: string;
+  password: string;
   strength: "strong" | "medium" | "weak";
   category: string;
   favorite: boolean;
@@ -27,6 +32,7 @@ const initialCredentials: Credential[] = [
     id: 1,
     name: "Google",
     username: "user@example.com",
+    password: "P@ssw0rd123!",
     strength: "strong",
     category: "personal",
     favorite: true,
@@ -36,6 +42,7 @@ const initialCredentials: Credential[] = [
     id: 2,
     name: "GitHub",
     username: "devuser",
+    password: "c0d3rP@ss",
     strength: "medium",
     category: "work",
     favorite: false,
@@ -45,6 +52,7 @@ const initialCredentials: Credential[] = [
     id: 3,
     name: "AWS Console",
     username: "admin@company.com",
+    password: "Cl0ud$3cure!",
     strength: "strong",
     category: "work",
     favorite: true,
@@ -54,6 +62,7 @@ const initialCredentials: Credential[] = [
     id: 4,
     name: "Netflix",
     username: "family@example.com",
+    password: "movies123",
     strength: "weak",
     category: "personal",
     favorite: false,
@@ -63,6 +72,7 @@ const initialCredentials: Credential[] = [
     id: 5,
     name: "Bank Account",
     username: "user@example.com",
+    password: "$ecur3B@nk2024",
     strength: "strong",
     category: "financial",
     favorite: true,
@@ -71,39 +81,192 @@ const initialCredentials: Credential[] = [
 ];
 
 export default function CredentialManager() {
-  const [credentials, setCredentials] =
-    useState<Credential[]>(initialCredentials);
+  const [credentials, setCredentials] = useState<Credential[]>([]);
   const [activeItem, setActiveItem] = useState("All Credentials");
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const handleDelete = (id: number) => {
-    setCredentials(credentials.filter((cred) => cred.id !== id));
+  // Fetch credentials from Supabase on component mount
+  useEffect(() => {
+    if (user) {
+      fetchCredentials();
+    }
+  }, [user]);
+
+  const fetchCredentials = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('credentials')
+        .select('*')
+        .order('name');
+      
+      if (error) {
+        console.error('Error fetching credentials:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load credentials",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Transform the data to match our Credential interface
+      const formattedData = data.map(cred => ({
+        id: cred.id,
+        name: cred.name,
+        username: cred.username,
+        password: cred.password,
+        strength: cred.strength as "strong" | "medium" | "weak",
+        category: cred.category,
+        favorite: cred.favorite,
+        lastUpdated: new Date(cred.last_updated).toISOString().split('T')[0],
+      }));
+      
+      setCredentials(formattedData);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleToggleFavorite = (id: number) => {
-    setCredentials(
-      credentials.map((cred) =>
-        cred.id === id ? { ...cred, favorite: !cred.favorite } : cred,
-      ),
-    );
+  const handleDelete = async (id: number) => {
+    try {
+      const { error } = await supabase
+        .from('credentials')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting credential:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete credential",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setCredentials(credentials.filter((cred) => cred.id !== id));
+      toast({
+        title: "Success",
+        description: "Credential deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleAddCredential = (newCred: {
+  const handleToggleFavorite = async (id: number) => {
+    try {
+      const credential = credentials.find(cred => cred.id === id);
+      if (!credential) return;
+      
+      const { error } = await supabase
+        .from('credentials')
+        .update({ favorite: !credential.favorite })
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error updating favorite status:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update favorite status",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setCredentials(
+        credentials.map((cred) =>
+          cred.id === id ? { ...cred, favorite: !cred.favorite } : cred,
+        ),
+      );
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddCredential = async (newCred: {
     name: string;
     username: string;
     password: string;
     category: string;
   }) => {
-    const newCredential: Credential = {
-      id: Math.max(...credentials.map((c) => c.id)) + 1,
-      name: newCred.name,
-      username: newCred.username,
-      strength: "strong", // In a real app, calculate strength based on password
-      category: newCred.category,
-      favorite: false,
-      lastUpdated: new Date().toISOString().split("T")[0],
-    };
-
-    setCredentials([...credentials, newCredential]);
+    try {
+      // Calculate password strength
+      const passwordStrength = calculatePasswordStrength(newCred.password);
+      
+      // Prepare the credential for insertion
+      const credentialData = {
+        user_id: user?.id, // Add user_id for Row Level Security
+        name: newCred.name,
+        username: newCred.username,
+        password: newCred.password,
+        strength: passwordStrength.strength,
+        category: newCred.category,
+        favorite: false,
+      };
+      
+      // Insert into Supabase
+      const { data, error } = await supabase
+        .from('credentials')
+        .insert(credentialData)
+        .select();
+      
+      if (error) {
+        console.error('Error adding credential:', error);
+        console.log('Attempted to insert with data:', { ...credentialData, password: '***' });
+        toast({
+          title: "Error",
+          description: `Failed to add credential: ${error.message || error.details || 'Unknown error'}`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Format the returned data
+      const newCredential: Credential = {
+        id: data[0].id,
+        name: data[0].name,
+        username: data[0].username,
+        password: data[0].password,
+        strength: data[0].strength,
+        category: data[0].category,
+        favorite: data[0].favorite,
+        lastUpdated: new Date(data[0].last_updated).toISOString().split('T')[0],
+      };
+      
+      setCredentials([...credentials, newCredential]);
+      toast({
+        title: "Success",
+        description: "Credential added successfully",
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -133,6 +296,7 @@ export default function CredentialManager() {
               credentials={credentials}
               onDelete={handleDelete}
               onToggleFavorite={handleToggleFavorite}
+              isLoading={loading}
             />
           </div>
         </main>
