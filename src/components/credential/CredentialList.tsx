@@ -215,12 +215,12 @@ export default function CredentialList({
   }, [searchQuery, activeTab]);
 
   return (
-    <div className="space-y-6">
-      <div className="mb-6 flex items-center gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="mb-4 sm:mb-6 flex items-center gap-2 sm:gap-4">
         <div className="relative flex-1">
           <Input
             placeholder="Search credentials..."
-            className="pl-9 bg-white"
+            className="pl-9 bg-white text-sm sm:text-base"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             disabled={isLoading}
@@ -228,14 +228,15 @@ export default function CredentialList({
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="mb-6" onValueChange={setActiveTab}>
-        <TabsList className="bg-gray-100 flex flex-wrap">
-          <TabsTrigger value="all" disabled={isLoading}>All</TabsTrigger>
+      <Tabs defaultValue="all" className="mb-4 sm:mb-6" onValueChange={setActiveTab}>
+        <TabsList className="bg-gray-100 flex flex-wrap overflow-x-auto text-xs sm:text-sm" style={{ scrollbarWidth: 'none' }}>
+          <TabsTrigger value="all" disabled={isLoading} className="py-1 px-2 sm:py-2 sm:px-3">All</TabsTrigger>
           {categoryOptions.map(category => (
             <TabsTrigger
               key={category}
               value={category.toLowerCase()}
               disabled={isLoading}
+              className="py-1 px-2 sm:py-2 sm:px-3 whitespace-nowrap"
             >
               {category}
             </TabsTrigger>
@@ -365,15 +366,15 @@ export default function CredentialList({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 {filteredCredentials
                   .filter((cred) => cred.category.toLowerCase() === category.toLowerCase())
                   .map((credential) => (
                     <CredentialCard
                       key={credential.id}
                       credential={credential}
-                      onDelete={onDelete}
-                      onToggleFavorite={onToggleFavorite}
+                      onDelete={() => onDelete(credential.id)}
+                      onToggleFavorite={() => onToggleFavorite(credential.id)}
                       onEdit={onEdit}
                       categoryOptions={categoryOptions}
                     />

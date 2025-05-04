@@ -15,7 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Bell, Home, Search, Settings, User } from "lucide-react";
+import { Bell, Home, Menu, Search, Settings, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../../supabase/auth";
 
@@ -35,16 +35,32 @@ const TopNavigation = ({
 
   if (!user) return null;
 
+  // Function to toggle sidebar visibility (defined in Sidebar.tsx)
+  const toggleSidebar = () => {
+    if (typeof window !== 'undefined' && (window as any).toggleSidebar) {
+      (window as any).toggleSidebar();
+    }
+  };
+
   return (
     <div className="w-full h-16 border-b border-gray-200 bg-white/80 backdrop-blur-md flex items-center justify-between px-6 fixed top-0 z-50 shadow-sm">
       <div className="flex items-center gap-4 flex-1">
+        {/* Mobile menu button */}
+        <button
+          className="md:hidden text-gray-700 hover:text-gray-900 transition-colors"
+          onClick={toggleSidebar}
+          aria-label="Toggle menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        
         <Link
           to="/"
           className="text-gray-900 hover:text-gray-700 transition-colors"
         >
           <Home className="h-5 w-5" />
         </Link>
-        <div className="relative w-64">
+        <div className="relative w-full max-w-[256px] hidden sm:block">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search credentials..."

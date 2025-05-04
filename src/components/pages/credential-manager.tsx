@@ -461,30 +461,33 @@ export default function CredentialManager() {
     <div className="min-h-screen bg-[#f5f5f7]">
       <TopNavigation />
       <div className="flex h-[calc(100vh-64px)] mt-16">
+        {/* Sidebar - will auto-hide on mobile */}
         <Sidebar
           items={sidebarItems}
           activeItem={activeItem}
           onItemClick={setActiveItem}
         />
-        <main className="flex-1 overflow-auto">
-          <div className="container mx-auto p-6">
-            <div className="flex justify-between items-center mb-6">
+        {/* Main content area - takes full width on mobile */}
+        <main className="flex-1 overflow-auto w-full">
+          <div className="container mx-auto p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                   {activeItem === 'Favorites' ? 'Favorite Credentials' : 'Credentials Vault'}
                 </h1>
-                <p className="text-gray-500">
+                <p className="text-sm sm:text-base text-gray-500">
                   {activeItem === 'Favorites'
                     ? 'Your most important credentials'
                     : 'Securely manage all your credentials'}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                 <Button
                   variant="destructive"
                   onClick={handleDeleteAllCredentials}
-                  className="ml-2"
+                  className="flex-1 sm:flex-none"
                   disabled={loading}
+                  size="sm"
                 >
                   {loading ? 'Deleting...' : 'Delete All Credentials'}
                 </Button>

@@ -42,15 +42,76 @@ const Sidebar = ({
   onItemClick = () => { },
 }: SidebarProps) => {
   const navigate = useNavigate();
+  // Check if screen is mobile on initial render and when window resizes
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+  const [collapsed, setCollapsed] = React.useState(isMobile);
+  const [showSidebar, setShowSidebar] = React.useState(!isMobile);
+  
+  // Handle window resize
+  React.useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile && !collapsed) {
+        setCollapsed(true);
+        setShowSidebar(false);
+      } else if (!mobile && !showSidebar) {
+        setShowSidebar(true);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [collapsed]);
+  // Toggle sidebar visibility for mobile
+  const toggleSidebar = () => {
+    if (isMobile) {
+      setShowSidebar(!showSidebar);
+    } else {
+      setCollapsed(!collapsed);
+    }
+  };
+
+  // Allow parent components to control sidebar visibility
+  React.useEffect(() => {
+    // Export toggleSidebar function to window for TopNavigation to use
+    // This is a simple way to communicate between components without prop drilling
+    (window as any).toggleSidebar = toggleSidebar;
+  }, [isMobile, showSidebar, collapsed]);
+
+  if (!showSidebar && isMobile) {
+    return null; // Don't render sidebar on mobile when hidden
+  }
+
   return (
-    <div className="w-[280px] h-full bg-white/80 backdrop-blur-md border-r border-gray-200 flex flex-col">
-      <div className="p-6">
-        <h2 className="text-xl font-semibold mb-2 text-gray-900">
-          Credentials Manager
-        </h2>
-        <p className="text-sm text-gray-500">
-          Store and manage your passwords securely
-        </p>
+    <div className={`h-full bg-white/80 backdrop-blur-md border-r border-gray-200 flex flex-col transition-all duration-200 ${
+      collapsed ? 'w-[64px]' : 'w-[280px]'
+    } ${isMobile ? 'fixed z-50 shadow-lg' : ''}`}>
+      <div className={`flex items-center justify-between p-6 ${collapsed ? 'px-2 py-4' : ''}`}>
+        {!collapsed && (
+          <div>
+            <h2 className="text-xl font-semibold mb-2 text-gray-900">
+              Credentials Manager
+            </h2>
+            <p className="text-sm text-gray-500">
+              Store and manage your passwords securely
+            </p>
+          </div>
+        )}
+        <button
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          onClick={toggleSidebar}
+          className="ml-auto rounded p-1 hover:bg-gray-200 transition"
+        >
+          <span className="sr-only">Toggle sidebar</span>
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+            {collapsed ? (
+              <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
+            ) : (
+              <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M15 6l-6 6 6 6" />
+            )}
+          </svg>
+        </button>
       </div>
 
       <ScrollArea className="flex-1 px-4">
@@ -59,20 +120,21 @@ const Sidebar = ({
             <Button
               key={item.label}
               variant={"ghost"}
-              className={`w-full justify-start gap-3 h-10 rounded-xl text-sm font-medium ${item.label === activeItem ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "text-gray-700 hover:bg-gray-100"}`}
+              className={`w-full justify-start gap-3 h-10 rounded-xl text-sm font-medium ${item.label === activeItem ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "text-gray-700 hover:bg-gray-100"} ${collapsed ? 'px-2 justify-center' : ''}`}
               onClick={() => {
                 onItemClick(item.label);
                 if (item.href) {
                   navigate(item.href);
                 }
               }}
+              title={collapsed ? item.label : undefined}
             >
               <span
                 className={`${item.label === activeItem ? "text-blue-600" : "text-gray-500"}`}
               >
                 {item.icon}
               </span>
-              {item.label}
+              {!collapsed && item.label}
             </Button>
           ))}
         </div>
@@ -107,15 +169,16 @@ const Sidebar = ({
         </div> */}
       </ScrollArea>
 
-      <div className="p-6 mt-auto">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <div className="p-6 mt-auto flex flex-col items-center">
+        <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} w-full`}>
+          <div className={`flex items-center ${collapsed ? 'gap-1' : 'gap-3'}`}>
             {defaultBottomItems.map((item) => (
               <Button
                 key={item.label}
                 variant="ghost"
                 size="icon"
                 className="rounded-full"
+                title={collapsed ? item.label : undefined}
               >
                 <span className="text-gray-500">{item.icon}</span>
               </Button>
