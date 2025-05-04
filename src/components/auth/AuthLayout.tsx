@@ -25,6 +25,10 @@ export default function AuthLayout({ children, title = "Login", subtitle = "Sign
             <Link to="/" className="hover:text-gray-500">Examples</Link>
             <Link to="/" className="hover:text-gray-500">Support</Link> */}
           </nav>
+          <div className="flex items-center">
+            {/* Theme toggle button */}
+            {/* Theme toggle removed */}
+          </div>
         </div>
       </header>
 

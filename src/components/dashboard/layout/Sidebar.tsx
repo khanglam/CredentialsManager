@@ -79,7 +79,7 @@ const Sidebar = ({
 
         <Separator className="my-4 bg-gray-100" />
 
-        <div className="space-y-3">
+        {/* <div className="space-y-3">
           <h3 className="text-xs font-medium px-4 py-1 text-gray-500 uppercase tracking-wider">
             Categories
           </h3>
@@ -104,21 +104,25 @@ const Sidebar = ({
             <span className="h-2 w-2 rounded-full bg-green-500"></span>
             Financial
           </Button>
-        </div>
+        </div> */}
       </ScrollArea>
 
-      <div className="p-4 mt-auto border-t border-gray-200">
-        {defaultBottomItems.map((item) => (
-          <Button
-            key={item.label}
-            variant="ghost"
-            className="w-full justify-start gap-3 h-10 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 mb-1.5"
-            onClick={() => onItemClick(item.label)}
-          >
-            <span className="text-gray-500">{item.icon}</span>
-            {item.label}
-          </Button>
-        ))}
+      <div className="p-6 mt-auto">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {defaultBottomItems.map((item) => (
+              <Button
+                key={item.label}
+                variant="ghost"
+                size="icon"
+                className="rounded-full"
+              >
+                <span className="text-gray-500">{item.icon}</span>
+              </Button>
+            ))}
+          </div>
+          {/* Theme toggle removed */}
+        </div>
       </div>
     </div>
   );

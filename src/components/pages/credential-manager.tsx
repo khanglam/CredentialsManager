@@ -29,63 +29,11 @@ const sidebarItems = [
   { icon: <Shield size={20} />, label: "Security Report", href: "/security-report" },
 ];
 
-const initialCredentials: Credential[] = [
-  {
-    id: 1,
-    name: "Google",
-    username: "user@example.com",
-    password: "P@ssw0rd123!",
-    strength: "strong",
-    category: "personal",
-    favorite: true,
-    lastUpdated: "2023-12-15",
-  },
-  {
-    id: 2,
-    name: "GitHub",
-    username: "devuser",
-    password: "c0d3rP@ss",
-    strength: "medium",
-    category: "work",
-    favorite: false,
-    lastUpdated: "2024-01-20",
-  },
-  {
-    id: 3,
-    name: "AWS Console",
-    username: "admin@company.com",
-    password: "Cl0ud$3cure!",
-    strength: "strong",
-    category: "work",
-    favorite: true,
-    lastUpdated: "2024-02-05",
-  },
-  {
-    id: 4,
-    name: "Netflix",
-    username: "family@example.com",
-    password: "movies123",
-    strength: "weak",
-    category: "personal",
-    favorite: false,
-    lastUpdated: "2023-11-10",
-  },
-  {
-    id: 5,
-    name: "Bank Account",
-    username: "user@example.com",
-    password: "$ecur3B@nk2024",
-    strength: "strong",
-    category: "financial",
-    favorite: true,
-    lastUpdated: "2024-03-01",
-  },
-];
-
 export default function CredentialManager() {
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [activeItem, setActiveItem] = useState("All Credentials");
   const [loading, setLoading] = useState(true);
+  const [categoryOptions, setCategoryOptions] = useState<string[]>(["Personal", "Work", "Financial", "Social"]);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -128,6 +76,20 @@ export default function CredentialManager() {
       }));
 
       setCredentials(formattedData);
+
+      // Extract unique categories from credentials and update categoryOptions
+      const uniqueCategories = [...new Set(formattedData.map(cred => cred.category).filter(Boolean))];
+      if (uniqueCategories.length > 0) {
+        setCategoryOptions(prev => {
+          const updatedCategories = [...prev];
+          uniqueCategories.forEach(category => {
+            if (!updatedCategories.includes(category)) {
+              updatedCategories.push(category);
+            }
+          });
+          return updatedCategories;
+        });
+      }
     } catch (error) {
       console.error('Error:', error);
       toast({
@@ -384,6 +346,9 @@ export default function CredentialManager() {
     try {
       setLoading(true);
 
+      // Track new categories to add to filter options
+      const newCategories = new Set<string>();
+
       // Prepare credentials for insertion with user_id and strength
       const credentialsToInsert = importedCredentials.map(cred => {
         // Ensure strength is a string value ("strong", "medium", or "weak")
@@ -399,12 +364,17 @@ export default function CredentialManager() {
           strength = 'medium'; // Default to medium if invalid
         }
 
+        // Track any new categories from imported credentials
+        if (cred.category && !categoryOptions.includes(cred.category)) {
+          newCategories.add(cred.category);
+        }
+
         return {
           user_id: user?.id,
           name: cred.name,
           username: cred.username,
           password: cred.password,
-          category: cred.category || 'Imported',
+          category: cred.category || 'Other',
           strength: strength,
           last_updated: new Date().toISOString(),
           favorite: cred.favorite || false,
@@ -428,6 +398,19 @@ export default function CredentialManager() {
         return;
       }
 
+      // Add any new categories to the categoryOptions
+      if (newCategories.size > 0) {
+        setCategoryOptions(prev => {
+          const updatedCategories = [...prev];
+          newCategories.forEach(category => {
+            if (!updatedCategories.includes(category)) {
+              updatedCategories.push(category);
+            }
+          });
+          return updatedCategories;
+        });
+      }
+
       // Format the returned data
       const newCredentials = data.map((cred: any) => ({
         id: cred.id,
@@ -438,6 +421,7 @@ export default function CredentialManager() {
         category: cred.category,
         favorite: cred.favorite,
         lastUpdated: new Date(cred.last_updated).toISOString().split('T')[0],
+        notes: cred.notes || '',  // Make sure notes are included
       }));
 
       setCredentials([...credentials, ...newCredentials]);
@@ -505,7 +489,7 @@ export default function CredentialManager() {
                   {loading ? 'Deleting...' : 'Delete All Credentials'}
                 </Button>
                 <ImportCredentialsDialog onImport={handleImportCredentials} />
-                <AddCredentialDialog onSave={handleAddCredential} />
+                <AddCredentialDialog onSave={handleAddCredential} categoryOptions={categoryOptions} />
               </div>
             </div>
 
@@ -515,6 +499,7 @@ export default function CredentialManager() {
               onToggleFavorite={handleToggleFavorite}
               onEdit={handleEdit}
               isLoading={loading}
+              categoryOptions={categoryOptions}
             />
           </div>
         </main>

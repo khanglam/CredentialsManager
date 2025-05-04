@@ -22,22 +22,28 @@ import { Plus, RefreshCw } from "lucide-react";
 import { calculatePasswordStrength, generatePassword } from "@/lib/passwordUtils";
 
 interface AddCredentialDialogProps {
-  onSave?: (credential: {
+  onSave: (credential: {
     name: string;
     username: string;
     password: string;
     category: string;
+    notes?: string;
   }) => void;
+  categoryOptions?: string[];
 }
 
 export default function AddCredentialDialog({
   onSave,
+  categoryOptions = [],
 }: AddCredentialDialogProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [category, setCategory] = useState("");
+  // Use categoryOptions from props instead of local state
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
   const [passwordStrength, setPasswordStrength] = useState<{
     strength: 'weak' | 'medium' | 'strong';
     score: number;
@@ -71,6 +77,8 @@ export default function AddCredentialDialog({
     setUsername("");
     setPassword("");
     setCategory("");
+    setAddingCategory(false);
+    setNewCategory("");
     setShowPassword(false);
   };
 
@@ -173,7 +181,7 @@ export default function AddCredentialDialog({
                     </Button>
                   </div>
                 </div>
-                
+
                 {password && (
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -191,7 +199,7 @@ export default function AddCredentialDialog({
                     </div>
                   </div>
                 )}
-                
+
                 <Button
                   type="button"
                   variant="outline"
@@ -208,17 +216,61 @@ export default function AddCredentialDialog({
               <Label htmlFor="category" className="text-right">
                 Category
               </Label>
-              <Select value={category} onValueChange={setCategory} required>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="personal">Personal</SelectItem>
-                  <SelectItem value="work">Work</SelectItem>
-                  <SelectItem value="financial">Financial</SelectItem>
-                  <SelectItem value="social">Social</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="col-span-3">
+                <Select value={category} onValueChange={(val) => {
+                  if (val === "__add_new__") {
+                    setAddingCategory(true);
+                  } else {
+                    setCategory(val);
+                  }
+                }} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryOptions.map((cat) => (
+                      <SelectItem key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</SelectItem>
+                    ))}
+                    <SelectItem value="__add_new__">+ Add new category…</SelectItem>
+                  </SelectContent>
+                </Select>
+                {addingCategory && (
+                  <div className="flex mt-2 gap-2">
+                    <Input
+                      autoFocus
+                      placeholder="New category name"
+                      value={newCategory}
+                      onChange={e => setNewCategory(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => {
+                        if (newCategory.trim() && !categoryOptions.includes(newCategory.trim())) {
+                          // We don't modify categoryOptions here as it comes from props
+                          setCategory(newCategory.trim());
+                        }
+                        setAddingCategory(false);
+                        setNewCategory("");
+                      }}
+                    >
+                      Add
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setAddingCategory(false);
+                        setNewCategory("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <DialogFooter>

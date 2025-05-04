@@ -41,71 +41,21 @@ interface CredentialListProps {
   onToggleFavorite?: (id: number) => void;
   onEdit?: (credential: Credential) => void;
   isLoading?: boolean;
+  categoryOptions?: string[];
 }
-
-const sampleCredentials: Credential[] = [
-  {
-    id: 1,
-    name: "Google",
-    username: "user@example.com",
-    password: "P@ssw0rd123!",
-    strength: "strong",
-    category: "personal",
-    favorite: true,
-    lastUpdated: "2023-12-15",
-  },
-  {
-    id: 2,
-    name: "GitHub",
-    username: "devuser",
-    password: "c0d3rP@ss",
-    strength: "medium",
-    category: "work",
-    favorite: false,
-    lastUpdated: "2024-01-20",
-  },
-  {
-    id: 3,
-    name: "AWS Console",
-    username: "admin@company.com",
-    password: "Cl0ud$3cure!",
-    strength: "strong",
-    category: "work",
-    favorite: true,
-    lastUpdated: "2024-02-05",
-  },
-  {
-    id: 4,
-    name: "Netflix",
-    username: "family@example.com",
-    password: "movies123",
-    strength: "weak",
-    category: "personal",
-    favorite: false,
-    lastUpdated: "2023-11-10",
-  },
-  {
-    id: 5,
-    name: "Bank Account",
-    username: "user@example.com",
-    password: "$ecur3B@nk2024",
-    strength: "strong",
-    category: "financial",
-    favorite: true,
-    lastUpdated: "2024-03-01",
-  },
-];
 
 const CredentialCard = ({
   credential,
   onDelete,
   onToggleFavorite,
   onEdit,
+  categoryOptions,
 }: {
   credential: Credential;
   onDelete?: (id: number) => void;
   onToggleFavorite?: (id: number) => void;
   onEdit?: (credential: Credential) => void;
+  categoryOptions?: string[];
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -216,6 +166,7 @@ const CredentialCard = ({
             <EditCredentialDialog
               credential={credential}
               onSave={onEdit}
+              categoryOptions={categoryOptions}
             />
           )}
           <Button
@@ -239,6 +190,7 @@ export default function CredentialList({
   onToggleFavorite,
   onEdit,
   isLoading = false,
+  categoryOptions = [],
 }: CredentialListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
@@ -250,13 +202,13 @@ export default function CredentialList({
       cred.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       cred.username.toLowerCase().includes(searchQuery.toLowerCase()),
   );
-  
+
   // Calculate pagination
   const totalPages = Math.ceil(filteredCredentials.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedCredentials = filteredCredentials.slice(startIndex, endIndex);
-  
+
   // Reset to first page when search query changes
   React.useEffect(() => {
     setCurrentPage(1);
@@ -277,11 +229,17 @@ export default function CredentialList({
       </div>
 
       <Tabs defaultValue="all" className="mb-6" onValueChange={setActiveTab}>
-        <TabsList className="bg-gray-100">
+        <TabsList className="bg-gray-100 flex flex-wrap">
           <TabsTrigger value="all" disabled={isLoading}>All</TabsTrigger>
-          <TabsTrigger value="personal" disabled={isLoading}>Personal</TabsTrigger>
-          <TabsTrigger value="work" disabled={isLoading}>Work</TabsTrigger>
-          <TabsTrigger value="financial" disabled={isLoading}>Financial</TabsTrigger>
+          {categoryOptions.map(category => (
+            <TabsTrigger
+              key={category}
+              value={category.toLowerCase()}
+              disabled={isLoading}
+            >
+              {category}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="all" className="mt-4">
@@ -315,14 +273,14 @@ export default function CredentialList({
                   />
                 ))}
               </div>
-              
+
               {totalPages > 1 && (
                 <div className="mt-6">
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                           disabled={currentPage === 1}
                           className="flex items-center gap-1"
@@ -331,11 +289,11 @@ export default function CredentialList({
                           <span>Previous</span>
                         </Button>
                       </PaginationItem>
-                      
+
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                         // Show first page, last page, current page, and pages around current
                         let pageToShow;
-                        
+
                         if (totalPages <= 5) {
                           // If 5 or fewer pages, show all pages
                           pageToShow = i + 1;
@@ -349,10 +307,10 @@ export default function CredentialList({
                           // Otherwise show current page and 2 pages on each side
                           pageToShow = currentPage - 2 + i;
                         }
-                        
+
                         return (
                           <PaginationItem key={pageToShow}>
-                            <PaginationLink 
+                            <PaginationLink
                               onClick={() => setCurrentPage(pageToShow)}
                               isActive={currentPage === pageToShow}
                               className="cursor-pointer"
@@ -362,10 +320,10 @@ export default function CredentialList({
                           </PaginationItem>
                         );
                       })}
-                      
+
                       <PaginationItem>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                           disabled={currentPage === totalPages}
                           className="flex items-center gap-1"
@@ -376,7 +334,7 @@ export default function CredentialList({
                       </PaginationItem>
                     </PaginationContent>
                   </Pagination>
-                  
+
                   <div className="text-center text-sm text-gray-500 mt-2">
                     Showing {startIndex + 1}-{Math.min(endIndex, filteredCredentials.length)} of {filteredCredentials.length} credentials
                   </div>
@@ -386,107 +344,44 @@ export default function CredentialList({
           )}
         </TabsContent>
 
-        <TabsContent value="personal" className="mt-4">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="h-10 w-10 rounded-full border-4 border-t-blue-500 border-b-gray-200 border-l-gray-200 border-r-gray-200 animate-spin mb-4"></div>
-              <p className="text-gray-500">Loading your credentials...</p>
-            </div>
-          ) : filteredCredentials.filter((cred) => cred.category === "personal").length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg border border-gray-200">
-              <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
+        {/* Dynamically generate TabsContent for each category */}
+        {categoryOptions.map(category => (
+          <TabsContent key={category} value={category.toLowerCase()} className="mt-4">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="h-10 w-10 rounded-full border-4 border-t-blue-500 border-b-gray-200 border-l-gray-200 border-r-gray-200 animate-spin mb-4"></div>
+                <p className="text-gray-500">Loading your credentials...</p>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No personal credentials found</h3>
-              <p className="text-gray-500 text-center max-w-md mb-6">
-                Add your first personal credential to get started.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredCredentials
-                .filter((cred) => cred.category === "personal")
-                .map((credential) => (
-                  <CredentialCard
-                    key={credential.id}
-                    credential={credential}
-                    onDelete={onDelete}
-                    onToggleFavorite={onToggleFavorite}
-                  />
-                ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="work" className="mt-4">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="h-10 w-10 rounded-full border-4 border-t-blue-500 border-b-gray-200 border-l-gray-200 border-r-gray-200 animate-spin mb-4"></div>
-              <p className="text-gray-500">Loading your credentials...</p>
-            </div>
-          ) : filteredCredentials.filter((cred) => cred.category === "work").length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg border border-gray-200">
-              <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
+            ) : filteredCredentials.filter((cred) => cred.category.toLowerCase() === category.toLowerCase()).length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg border border-gray-200">
+                <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-1">No {category.toLowerCase()} credentials found</h3>
+                <p className="text-gray-500 text-center max-w-md mb-6">
+                  Add your first {category.toLowerCase()} credential to get started.
+                </p>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No work credentials found</h3>
-              <p className="text-gray-500 text-center max-w-md mb-6">
-                Add your first work credential to get started.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredCredentials
-                .filter((cred) => cred.category === "work")
-                .map((credential) => (
-                  <CredentialCard
-                    key={credential.id}
-                    credential={credential}
-                    onDelete={onDelete}
-                    onToggleFavorite={onToggleFavorite}
-                  />
-                ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="financial" className="mt-4">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="h-10 w-10 rounded-full border-4 border-t-blue-500 border-b-gray-200 border-l-gray-200 border-r-gray-200 animate-spin mb-4"></div>
-              <p className="text-gray-500">Loading your credentials...</p>
-            </div>
-          ) : filteredCredentials.filter((cred) => cred.category === "financial").length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg border border-gray-200">
-              <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredCredentials
+                  .filter((cred) => cred.category.toLowerCase() === category.toLowerCase())
+                  .map((credential) => (
+                    <CredentialCard
+                      key={credential.id}
+                      credential={credential}
+                      onDelete={onDelete}
+                      onToggleFavorite={onToggleFavorite}
+                      onEdit={onEdit}
+                      categoryOptions={categoryOptions}
+                    />
+                  ))}
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No financial credentials found</h3>
-              <p className="text-gray-500 text-center max-w-md mb-6">
-                Add your first financial credential to get started.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredCredentials
-                .filter((cred) => cred.category === "financial")
-                .map((credential) => (
-                  <CredentialCard
-                    key={credential.id}
-                    credential={credential}
-                    onDelete={onDelete}
-                    onToggleFavorite={onToggleFavorite}
-                  />
-                ))}
-            </div>
-          )}
-        </TabsContent>
+            )}
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );

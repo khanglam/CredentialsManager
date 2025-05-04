@@ -88,7 +88,7 @@ export default function LandingPage() {
 
       <footer className="bg-[#f5f5f7] py-8 mt-8">
         <div className="max-w-[980px] mx-auto px-4 text-center text-sm text-gray-500">
-          <p>&copy; {new Date().getFullYear()} Credential Manager</p>
+          <p>&copy; 2025 Khang Lam</p>
         </div>
       </footer>
     </div>

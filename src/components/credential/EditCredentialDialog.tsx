@@ -32,16 +32,24 @@ type Credential = {
 interface EditCredentialDialogProps {
   credential: Credential;
   onSave: (updatedCredential: Credential) => void;
+  categoryOptions?: string[];
 }
 
-export default function EditCredentialDialog({ credential, onSave }: EditCredentialDialogProps) {
+export default function EditCredentialDialog({ credential, onSave, categoryOptions = [] }: EditCredentialDialogProps) {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<Credential>({ ...credential });
+  // Use the categoryOptions passed from props
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
 
   // Reset form data when credential changes or dialog opens
   useEffect(() => {
     if (open) {
-      setFormData({ ...credential });
+      // Make sure to include the category and set a default if it's missing
+      setFormData({ 
+        ...credential,
+        category: credential.category || 'Other' // Ensure category is never undefined
+      });
     }
   }, [credential, open]);
 
@@ -49,19 +57,24 @@ export default function EditCredentialDialog({ credential, onSave }: EditCredent
     const { name, value } = e.target;
     setFormData(prev => {
       const updated = { ...prev, [name]: value };
-      
+
       // Update password strength if password changes
       if (name === 'password') {
         const { strength } = calculatePasswordStrength(value);
         updated.strength = strength;
       }
-      
+
       return updated;
     });
   };
 
   const handleCategoryChange = (value: string) => {
-    setFormData(prev => ({ ...prev, category: value }));
+    if (value === "__add_new__") {
+      setAddingCategory(true);
+    } else {
+      setFormData(prev => ({ ...prev, category: value }));
+      console.log('Category changed to:', value);
+    }
   };
 
   const handleSubmit = () => {
@@ -83,7 +96,7 @@ export default function EditCredentialDialog({ credential, onSave }: EditCredent
 
     onSave(updatedCredential);
     setOpen(false);
-    
+
     toast({
       title: "Credential Updated",
       description: `${updatedCredential.name} has been updated successfully.`,
@@ -146,22 +159,66 @@ export default function EditCredentialDialog({ credential, onSave }: EditCredent
             <Label htmlFor="category" className="text-right">
               Category
             </Label>
-            <Select
-              value={formData.category}
-              onValueChange={handleCategoryChange}
-            >
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Personal">Personal</SelectItem>
-                <SelectItem value="Work">Work</SelectItem>
-                <SelectItem value="Finance">Finance</SelectItem>
-                <SelectItem value="Social">Social</SelectItem>
-                <SelectItem value="Imported">Imported</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="col-span-3">
+              <Select
+                key={formData.category}
+                defaultValue={formData.category}
+                onValueChange={handleCategoryChange}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(() => {
+                    // Always include the credential's current category, even if not in categoryOptions
+                    const allOptions = categoryOptions.includes(formData.category)
+                      ? categoryOptions
+                      : [...categoryOptions, formData.category].filter(Boolean);
+                    return allOptions.map((cat) => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ));
+                  })()}
+                  <SelectItem value="__add_new__">+ Add new category…</SelectItem>
+                </SelectContent>
+              </Select>
+              {addingCategory && (
+                <div className="flex mt-2 gap-2">
+                  <Input
+                    autoFocus
+                    placeholder="New category name"
+                    value={newCategory}
+                    onChange={e => setNewCategory(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      if (newCategory.trim() && !categoryOptions.includes(newCategory.trim())) {
+                        // Notify parent component about the new category
+                        setFormData(prev => ({ ...prev, category: newCategory.trim() }));
+                        // We'll handle adding to categoryOptions in the parent component
+                      }
+                      setAddingCategory(false);
+                      setNewCategory("");
+                    }}
+                  >
+                    Add
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setAddingCategory(false);
+                      setNewCategory("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="notes" className="text-right">
