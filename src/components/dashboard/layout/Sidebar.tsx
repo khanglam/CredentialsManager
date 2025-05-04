@@ -28,8 +28,7 @@ interface SidebarProps {
 const defaultNavItems: NavItem[] = [
   { icon: <Home size={20} />, label: "Home", isActive: true, href: "/" },
   { icon: <Key size={20} />, label: "Credentials", href: "/credentials" },
-  { icon: <Shield size={20} />, label: "Security Report", href: "/security-report" },
-  { icon: <Lock size={20} />, label: "Password Generator", href: "/password-generator" },
+  { icon: <Shield size={20} />, label: "Security Report", href: "/security-report" }
 ];
 
 const defaultBottomItems: NavItem[] = [
@@ -40,14 +39,14 @@ const defaultBottomItems: NavItem[] = [
 const Sidebar = ({
   items = defaultNavItems,
   activeItem = "Home",
-  onItemClick = () => {},
+  onItemClick = () => { },
 }: SidebarProps) => {
   const navigate = useNavigate();
   return (
     <div className="w-[280px] h-full bg-white/80 backdrop-blur-md border-r border-gray-200 flex flex-col">
       <div className="p-6">
         <h2 className="text-xl font-semibold mb-2 text-gray-900">
-          CredentialsManager
+          Credentials Manager
         </h2>
         <p className="text-sm text-gray-500">
           Store and manage your passwords securely

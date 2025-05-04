@@ -4,7 +4,7 @@ import Sidebar from "../dashboard/layout/Sidebar";
 import CredentialList from "../credential/CredentialList";
 import AddCredentialDialog from "../credential/AddCredentialDialog";
 import ImportCredentialsDialog from "../credential/ImportCredentialsDialog";
-import { Key, Star, Lock } from "lucide-react";
+import { Key, Star, Lock, Shield } from "lucide-react";
 import { supabase } from "../../../supabase/supabase";
 import { useAuth } from "../../../supabase/auth";
 import { useToast } from "@/components/ui/use-toast";
@@ -26,7 +26,7 @@ interface Credential {
 const sidebarItems = [
   { icon: <Key size={20} />, label: "All Credentials", isActive: true },
   { icon: <Star size={20} />, label: "Favorites" },
-  { icon: <Lock size={20} />, label: "Password Generator" },
+  { icon: <Shield size={20} />, label: "Security Report", href: "/security-report" },
 ];
 
 const initialCredentials: Credential[] = [
@@ -487,12 +487,12 @@ export default function CredentialManager() {
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {activeItem === 'Favorites' ? 'Favorite Credentials' : 'Credential Vault'}
+                  {activeItem === 'Favorites' ? 'Favorite Credentials' : 'Credentials Vault'}
                 </h1>
                 <p className="text-gray-500">
                   {activeItem === 'Favorites'
                     ? 'Your most important credentials'
-                    : 'Securely manage all your passwords'}
+                    : 'Securely manage all your credentials'}
                 </p>
               </div>
               <div className="flex gap-2">

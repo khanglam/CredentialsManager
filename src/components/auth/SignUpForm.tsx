@@ -32,7 +32,7 @@ export default function SignUpForm() {
   };
 
   return (
-    <AuthLayout>
+    <AuthLayout title="Register" subtitle="Create a new account">
       <div className="bg-white rounded-2xl shadow-sm p-8 w-full max-w-md mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">

@@ -24,7 +24,7 @@ export default function LandingPage() {
         <div className="max-w-[980px] mx-auto flex h-12 items-center justify-between px-4">
           <div className="flex items-center">
             <Link to="/" className="font-medium text-xl">
-              Credential Manager
+              Credentials Manager
             </Link>
           </div>
           <div className="flex items-center space-x-4">
