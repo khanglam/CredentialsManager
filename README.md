@@ -1,20 +1,16 @@
-<p align="center">
-  <img src="./assets/cover.png" alt="Credentials Manager Screenshot" width="700"/>
-</p>
-
-<h1 align="center">🔐 Credentials Manager</h1>
+<h1 align="center">
+  🔐 <a href="https://credentialsmanager.up.railway.app/" target="_blank" rel="noopener noreferrer">Credentials Manager</a>
+</h1>
 
 <p align="center">
   <b>Modern. Secure. Effortless credential management for the next generation.</b><br>
-  <a href="#features">Features</a> • <a href="#tech-stack">Tech Stack</a> • <a href="#getting-started">Getting Started</a> • <a href="#planned-features--improvements">Planned</a>
 </p>
 
 <p align="center">
-  <img alt="Vercel" src="https://img.shields.io/badge/Deployed-Vercel-000?logo=vercel">
+  <img alt="Railway" src="https://img.shields.io/badge/Deployed-Railway-000?logo=railway">
   <img alt="React" src="https://img.shields.io/badge/React-18+-61dafb?logo=react">
   <img alt="Supabase" src="https://img.shields.io/badge/Supabase-Auth%20%26%20DB-3ecf8e?logo=supabase">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-4+-3178c6?logo=typescript">
-  <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square">
 </p>
 
 ---
@@ -57,7 +53,7 @@ This app was made for me, so I understand the struggles to migrate from txt/exce
 
 ---
 
-## 🏁 Getting Started
+## 🏁 Getting Started (if you want to contribute)
 
 1. **Clone the repository**
    ```bash
@@ -69,7 +65,8 @@ This app was made for me, so I understand the struggles to migrate from txt/exce
    npm install
    ```
 3. **Configure environment**
-   - Copy `.env.example` to `.env` and fill in your Supabase credentials
+   - Create your own `.env` file and fill it with your Supabase credentials
+   - Only need `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
 4. **Run the app**
    ```bash
    npm run dev
@@ -105,13 +102,13 @@ src/
 
 ## 🗺️ Planned Features & Improvements
 
-- [ ] **End-to-End Encryption** (client-side)
+- [x] **End-to-End Encryption** (client-side)
 - [ ] **Biometric Authentication**
-- [ ] **Strong Password Generator**
+- [x] **Strong Password Generator**
 - [ ] **Browser Extension** for autofill
 - [ ] **Secure Sharing & Audit Log**
 - [ ] **Cloud Backup & Bulk Editing**
-- [ ] **Advanced Search & Filtering**
+- [x] **Advanced Search & Filtering**
 - [ ] **Dark Mode & Theme Customization**
 - [ ] **Multi-language Support**
 
