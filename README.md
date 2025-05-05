@@ -1,106 +1,140 @@
-# React + TypeScript + Vite
+<p align="center">
+  <img src="./assets/cover.png" alt="Credentials Manager Screenshot" width="700"/>
+</p>
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<h1 align="center">🔐 Credentials Manager</h1>
 
-Currently, two official plugins are available:
+<p align="center">
+  <b>Modern. Secure. Effortless credential management for the next generation.</b><br>
+  <a href="#features">Features</a> • <a href="#tech-stack">Tech Stack</a> • <a href="#getting-started">Getting Started</a> • <a href="#planned-features--improvements">Planned</a>
+</p>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+<p align="center">
+  <img alt="Vercel" src="https://img.shields.io/badge/Deployed-Vercel-000?logo=vercel">
+  <img alt="React" src="https://img.shields.io/badge/React-18+-61dafb?logo=react">
+  <img alt="Supabase" src="https://img.shields.io/badge/Supabase-Auth%20%26%20DB-3ecf8e?logo=supabase">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-4+-3178c6?logo=typescript">
+  <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square">
+</p>
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## 🚀 Why Credentials Manager?
 
-- Configure the top-level `parserOptions` property like this:
+Within Chrome, sure we have Google Password Manager, but for passwords outside of Chrome, I'm tired of tracking my passwords via txt/excels files. This was an issue for myself, friends and family, which was enough for me to build this app.
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+Credentials Manager is a full-stack, production-grade password manager designed for users who demand both **security** and **delightful UX**. Built with React, Supabase, and modern UI libraries, it empowers you to securely store, organize, and access credentials—anywhere, anytime.
+
+This app was made for me, so I understand the struggles to migrate from txt/excels files. There's a feature that allows you to easily import your credentials files to the app.
+
+**Note:** ALL credentials stored are encrypted and protected where even I can't access them.
+
+---
+
+## ✨ Key Features
+
+- **🔒 Secure Authentication** — Supabase-powered sign-up, login, and session management
+- **🔑 Password Recovery** — "Forgot password" and change password flows
+- **🗂️ Credential Management** — Add, edit, delete, and categorize credentials
+- **⭐ Favorites & Quick Access** — Pin your most-used logins
+- **🔍 Fast Search & Filtering** — Instantly find credentials by name, username, or notes
+- **🛡️ Security Report** — Visualize password strength and detect reuse
+- **📱 Mobile-First Design** — Responsive, app-like experience on any device
+- **⚡ Modern UI** — Built with Radix UI, Lucide icons, and Tailwind CSS
+- **📥 Import/Export** — Backup or migrate credentials easily
+
+<p align="center">
+  <img src="./assets/feature-dashboard.png" alt="Dashboard Screenshot" width="1900"/>
+</p>
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** React, Vite, TypeScript, Radix UI, Lucide Icons
+- **Backend:** Supabase (Auth & Database)
+- **Styling:** Tailwind CSS
+
+---
+
+## 🏁 Getting Started
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/CredentialsManager.git
+   cd CredentialsManager
+   ```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+3. **Configure environment**
+   - Copy `.env.example` to `.env` and fill in your Supabase credentials
+4. **Run the app**
+   ```bash
+   npm run dev
+   # Visit http://localhost:5173
+   ```
+
+---
+
+## 📂 Project Structure
+
+```
+src/
+  components/
+    auth/             # Authentication forms and logic
+    credential/       # Credential CRUD components
+    dashboard/        # Layout, sidebar, top navigation
+    pages/            # Main pages (credential manager, settings, etc.)
+  supabase/           # Supabase client and auth context
+  lib/                # Utility functions (e.g., password strength)
+  App.tsx             # App routes
+  main.tsx            # App entry point
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+---
 
-## Planned Features & Improvements
+## 🔐 Security
 
-### Security & Privacy
-- [ ] **End-to-End Encryption**: Encrypt credentials in the browser before sending to the backend (e.g., with CryptoJS, Web Crypto API). Only the user can decrypt with their master password.
-- [ ] **Biometric Authentication**: Integrate with device biometrics (FaceID, fingerprint) for unlocking credentials on supported devices.
-- [ ] **Password Generation**: Add a strong password generator tool (with options: length, symbols, numbers, etc.) in the Add/Edit dialog.
-- [ ] **Security Audit/Health Report**: Show password reuse, weak passwords, old passwords, and recommend changes.
-- [ ] **2FA/OTP Storage**: Allow storing and displaying TOTP (Time-based One-Time Password) secrets, QR code scanning, and code generation.
+- Passwords are never stored in plaintext.
+- All sensitive operations require authentication.
+- **Planned:** End-to-end encryption, biometric unlock, breach monitoring.
 
-### User Experience & Usability
-- [ ] **Browser Extension**: Build a Chrome/Firefox extension for autofilling credentials on login pages.
-- [ ] **Drag-and-Drop Organization**: Allow users to drag credentials between categories or reorder them.
-- [ ] **Favorites & Pinning**: Let users pin credentials to the top or mark as favorites for quick access.
-- [ ] **Search & Filtering Enhancements**: Add advanced search (by username, URL, notes) and multi-category filtering.
-- [ ] **Dark Mode / Theme Customization**: Let users choose dark/light/system theme, or customize accent colors.
+---
 
-### Collaboration & Sharing
-- [ ] **Secure Sharing**: Allow users to securely share credentials with other users (with expiration, revoke, view-only, etc.).
-- [ ] **Audit Log**: Show a history of changes, access, and sharing for each credential.
+## 🗺️ Planned Features & Improvements
 
-### Backup, Import, and Export
-- [ ] **Cloud Backup & Restore**: One-click backup/restore to Google Drive, Dropbox, or encrypted file download.
-- [ ] **Import/Export Enhancements**: Support more formats (1Password, LastPass, CSV, JSON) and bulk editing.
+- [ ] **End-to-End Encryption** (client-side)
+- [ ] **Biometric Authentication**
+- [ ] **Strong Password Generator**
+- [ ] **Browser Extension** for autofill
+- [ ] **Secure Sharing & Audit Log**
+- [ ] **Cloud Backup & Bulk Editing**
+- [ ] **Advanced Search & Filtering**
+- [ ] **Dark Mode & Theme Customization**
+- [ ] **Multi-language Support**
 
-### Mobile Experience
-- [ ] **Progressive Web App (PWA)**: Make the app installable on mobile devices, with offline support and push notifications.
-- [ ] **QR Code Login**: Scan a QR code on desktop to log in instantly on mobile.
+---
 
-### Other Feature Ideas
-- [ ] **Breach Monitoring**: Notify users if any stored credentials appear in public data breaches (using HaveIBeenPwned API).
-- [ ] **Custom Fields**: Allow users to add custom fields (e.g., security questions, PINs, notes) to credentials.
-- [ ] **Password Expiry Reminders**: Remind users to update passwords after a set period.
-- [ ] **Multi-language Support**: Add localization for global users.
-Integrate with device biometrics (FaceID, fingerprint) for unlocking credentials on supported devices.
-Password Generation
-Add a strong password generator tool (with options: length, symbols, numbers, etc.) in the Add/Edit dialog.
-Security Audit/Health Report
-Show password reuse, weak passwords, old passwords, and recommend changes.
-2FA/OTP Storage
-Allow storing and displaying TOTP (Time-based One-Time Password) secrets, QR code scanning, and code generation.
-User Experience & Usability
-Browser Extension
-Build a Chrome/Firefox extension for autofilling credentials on login pages.
-Drag-and-Drop Organization
-Allow users to drag credentials between categories or reorder them.
-Favorites & Pinning
-Let users pin credentials to the top or mark as favorites for quick access.
-Search & Filtering Enhancements
-Add advanced search (by username, URL, notes) and multi-category filtering.
-Dark Mode / Theme Customization
-Let users choose dark/light/system theme, or customize accent colors.
-Collaboration & Sharing
-Secure Sharing
-Allow users to securely share credentials with other users (with expiration, revoke, view-only, etc.).
-Audit Log
-Show a history of changes, access, and sharing for each credential.
-Backup, Import, and Export
-Cloud Backup & Restore
-One-click backup/restore to Google Drive, Dropbox, or encrypted file download.
-Import/Export Enhancements
-Support more formats (1Password, LastPass, CSV, JSON) and bulk editing.
-Mobile Experience
-Progressive Web App (PWA)
-Make the app installable on mobile devices, with offline support and push notifications.
-QR Code Login
-Scan a QR code on desktop to log in instantly on mobile.
-Other Feature Ideas
-Breach Monitoring
-Notify users if any stored credentials appear in public data breaches (using HaveIBeenPwned API).
-Custom Fields
-Allow users to add custom fields (e.g., security questions, PINs, notes) to credentials.
-Password Expiry Reminders
-Remind users to update passwords after a set period.
-Multi-language Support
-Add localization for global users.
+## 🤝 Contributing
+
+Pull requests are welcome! For major changes, please open an issue first to discuss your ideas.
+
+---
+
+## 📄 License
+
+[MIT](LICENSE)
+
+---
+
+<p align="center">
+  <i>Built for security, designed for delight.</i>
+</p>
+
+<!--
+Screenshots:
+- Place your app screenshots in ./assets/ and update the image links above.
+- Example: <img src="./assets/cover.png" width="700"/>
+-->
