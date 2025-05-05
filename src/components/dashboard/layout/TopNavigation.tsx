@@ -16,7 +16,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Bell, Home, Menu, Search, Settings, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../supabase/auth";
 
 interface TopNavigationProps {
@@ -25,13 +25,14 @@ interface TopNavigationProps {
 }
 
 const TopNavigation = ({
-  onSearch = () => {},
+  onSearch = () => { },
   notifications = [
-    { id: "1", title: "New project assigned" },
-    { id: "2", title: "Meeting reminder" },
+    { id: "1", title: "Welcome :)" },
+    // { id: "2", title: "Meeting reminder" },
   ],
 }: TopNavigationProps) => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   if (!user) return null;
 
@@ -53,7 +54,7 @@ const TopNavigation = ({
         >
           <Menu className="h-5 w-5" />
         </button>
-        
+
         <Link
           to="/"
           className="text-gray-900 hover:text-gray-700 transition-colors"
@@ -135,7 +136,7 @@ const TopNavigation = ({
               <User className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onSelect={() => navigate("/settings")}>
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </DropdownMenuItem>

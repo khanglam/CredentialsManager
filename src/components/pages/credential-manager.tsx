@@ -4,7 +4,7 @@ import Sidebar from "../dashboard/layout/Sidebar";
 import CredentialList from "../credential/CredentialList";
 import AddCredentialDialog from "../credential/AddCredentialDialog";
 import ImportCredentialsDialog from "../credential/ImportCredentialsDialog";
-import { Key, Star, Lock, Shield } from "lucide-react";
+import { Key, Shield, Star, Lock } from "lucide-react";
 import { supabase } from "../../../supabase/supabase";
 import { useAuth } from "../../../supabase/auth";
 import { useToast } from "@/components/ui/use-toast";

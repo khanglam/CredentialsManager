@@ -32,7 +32,7 @@ const defaultNavItems: NavItem[] = [
 ];
 
 const defaultBottomItems: NavItem[] = [
-  { icon: <Settings size={20} />, label: "Settings" },
+  { icon: <Settings size={20} />, label: "Settings", href: "/settings" },
   { icon: <HelpCircle size={20} />, label: "Help" },
 ];
 
@@ -46,7 +46,7 @@ const Sidebar = ({
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
   const [collapsed, setCollapsed] = React.useState(isMobile);
   const [showSidebar, setShowSidebar] = React.useState(!isMobile);
-  
+
   // Handle window resize
   React.useEffect(() => {
     const handleResize = () => {
@@ -59,7 +59,7 @@ const Sidebar = ({
         setShowSidebar(true);
       }
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [collapsed]);
@@ -84,9 +84,8 @@ const Sidebar = ({
   }
 
   return (
-    <div className={`h-full bg-white/80 backdrop-blur-md border-r border-gray-200 flex flex-col transition-all duration-200 ${
-      collapsed ? 'w-[64px]' : 'w-[280px]'
-    } ${isMobile ? 'fixed z-50 shadow-lg' : ''}`}>
+    <div className={`h-full bg-white/80 backdrop-blur-md border-r border-gray-200 flex flex-col transition-all duration-200 ${collapsed ? 'w-[64px]' : 'w-[280px]'
+      } ${isMobile ? 'fixed z-50 shadow-lg' : ''}`}>
       <div className={`flex items-center justify-between p-6 ${collapsed ? 'px-2 py-4' : ''}`}>
         {!collapsed && (
           <div>
@@ -179,6 +178,7 @@ const Sidebar = ({
                 size="icon"
                 className="rounded-full"
                 title={collapsed ? item.label : undefined}
+                onClick={() => navigate(item.href)}
               >
                 <span className="text-gray-500">{item.icon}</span>
               </Button>

@@ -17,7 +17,7 @@ export default function LoginForm() {
     e.preventDefault();
     try {
       await signIn(email, password);
-      navigate("/");
+      navigate("/credentials");
     } catch (error) {
       setError("Invalid email or password");
     }
