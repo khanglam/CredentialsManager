@@ -46,7 +46,7 @@ export default function EditCredentialDialog({ credential, onSave, categoryOptio
   useEffect(() => {
     if (open) {
       // Make sure to include the category and set a default if it's missing
-      setFormData({ 
+      setFormData({
         ...credential,
         category: credential.category || 'Other' // Ensure category is never undefined
       });
@@ -110,15 +110,15 @@ export default function EditCredentialDialog({ credential, onSave, categoryOptio
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Edit Credential</DialogTitle>
+      <DialogContent className="sm:max-w-[550px] md:max-w-[650px]">
+        <DialogHeader className="text-center">
+          <DialogTitle className="text-xl">Edit Credential</DialogTitle>
           <DialogDescription>
             Update your credential details. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
+        <div className="grid gap-6 py-6 mx-auto w-full max-w-[95%]">
+          <div className="grid grid-cols-5 items-center gap-5">
             <Label htmlFor="name" className="text-right">
               Name
             </Label>
@@ -127,10 +127,10 @@ export default function EditCredentialDialog({ credential, onSave, categoryOptio
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="col-span-3"
+              className="col-span-4"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-5 items-center gap-5">
             <Label htmlFor="username" className="text-right">
               Username
             </Label>
@@ -139,10 +139,10 @@ export default function EditCredentialDialog({ credential, onSave, categoryOptio
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className="col-span-3"
+              className="col-span-4"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-5 items-center gap-5">
             <Label htmlFor="password" className="text-right">
               Password
             </Label>
@@ -152,14 +152,14 @@ export default function EditCredentialDialog({ credential, onSave, categoryOptio
               type="password"
               value={formData.password}
               onChange={handleChange}
-              className="col-span-3"
+              className="col-span-4"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-5 items-center gap-5">
             <Label htmlFor="category" className="text-right">
               Category
             </Label>
-            <div className="col-span-3">
+            <div className="col-span-4">
               <Select
                 key={formData.category}
                 defaultValue={formData.category}
@@ -220,7 +220,7 @@ export default function EditCredentialDialog({ credential, onSave, categoryOptio
               )}
             </div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-5 items-center gap-5">
             <Label htmlFor="notes" className="text-right">
               Notes
             </Label>
@@ -229,8 +229,9 @@ export default function EditCredentialDialog({ credential, onSave, categoryOptio
               name="notes"
               value={formData.notes || ''}
               onChange={handleChange}
-              className="col-span-3"
-              rows={4}
+              className="col-span-4 min-h-[120px]"
+              rows={8}
+              style={{ height: '160px', resize: 'vertical' }}
             />
           </div>
         </div>
